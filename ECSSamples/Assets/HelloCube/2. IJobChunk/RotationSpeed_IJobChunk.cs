@@ -1,7 +1,7 @@
 ﻿using System;
 using Unity.Entities;
 
-// ReSharper disable once InconsistentNaming
+//旋转组件
 [Serializable]
 public struct RotationSpeed_IJobChunk : IComponentData
 {

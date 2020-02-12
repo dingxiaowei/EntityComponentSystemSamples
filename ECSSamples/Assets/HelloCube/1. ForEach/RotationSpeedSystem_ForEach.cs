@@ -3,17 +3,15 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-// This system updates all entities in the scene with both a RotationSpeed_ForEach and Rotation component.
-
-// ReSharper disable once InconsistentNaming
+//该系统更新所有的带有RotationSpeed_ForEach和Rotation组件的实体
 public class RotationSpeedSystem_ForEach : JobComponentSystem
 {
-    // OnUpdate runs on the main thread.
+    //OnUpdate方法运行在主线程上
     protected override JobHandle OnUpdate(JobHandle inputDependencies)
     {
         float deltaTime = Time.DeltaTime;
         
-        // Schedule job to rotate around up vector
+        //每一个jobHandle都是让一个实体围绕着up轴旋转
         var jobHandle = Entities
             .WithName("RotationSpeedSystem_ForEach")
             .ForEach((ref Rotation rotation, in RotationSpeed_ForEach rotationSpeed) =>
@@ -24,8 +22,7 @@ public class RotationSpeedSystem_ForEach : JobComponentSystem
              })
             .Schedule(inputDependencies);
     
-        
-        // Return job handle as the dependency for this system
+        //返回作业句柄作为此系统的依赖
         return jobHandle;
     }
 }

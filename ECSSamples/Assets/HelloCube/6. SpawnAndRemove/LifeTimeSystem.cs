@@ -3,23 +3,33 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 
+/// <summary>
+/// 生命周期，这里属于Component
+/// </summary>
 public struct LifeTime : IComponentData
 {
     public float Value;
 }
 
-// This system updates all entities in the scene with both a RotationSpeed_SpawnAndRemove and Rotation component.
+/// <summary>
+/// 这个系统负责场景中所有实体的生命周期
+/// 也可以将其改装来负责特定实体的生命周期，添加刷选条件Filter即可
+/// </summary>
 public class LifeTimeSystem : JobComponentSystem
 {
+    /// <summary>
+    /// 实体命令缓存系统--阻塞
+    /// </summary>
     EntityCommandBufferSystem m_Barrier;
 
+    /// <summary>
+    /// 将阻塞缓存起来
+    /// </summary>
     protected override void OnCreate()
     {
         m_Barrier = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
     }
 
-    // Use the [BurstCompile] attribute to compile a job with Burst.
-    // You may see significant speed ups, so try it!
     [BurstCompile]
     struct LifeTimeJob : IJobForEachWithEntity<LifeTime>
     {
@@ -28,6 +38,12 @@ public class LifeTimeSystem : JobComponentSystem
         [WriteOnly]
         public EntityCommandBuffer.Concurrent CommandBuffer;
 
+        /// <summary>
+        /// 每帧执行，如果寿命 < 0 则摧毁实体
+        /// </summary>
+        /// <param name="entity">实体</param>
+        /// <param name="jobIndex">任务索引</param>
+        /// <param name="lifeTime">寿命</param>
         public void Execute(Entity entity, int jobIndex, ref LifeTime lifeTime)
         {
             lifeTime.Value -= DeltaTime;
@@ -39,7 +55,11 @@ public class LifeTimeSystem : JobComponentSystem
         }
     }
 
-    // OnUpdate runs on the main thread.
+    /// <summary>
+    /// 在主线程上每帧运行OnUpdate
+    /// </summary>
+    /// <param name="inputDependencies">输入依赖</param>
+    /// <returns>任务</returns>
     protected override JobHandle OnUpdate(JobHandle inputDependencies)
     {
         var commandBuffer = m_Barrier.CreateCommandBuffer().ToConcurrent();
